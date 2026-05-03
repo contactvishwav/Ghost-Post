@@ -1,20 +1,38 @@
-# User Stories: The LinkedIn Workflow
+# User Stories: GhostPost Workflow
+
+This document outlines the user and technical requirements for the LinkedIn-first, multi-platform content workflow.
+
+## Implementation Priority
+
+| Priority | Focus | Features |
+| :--- | :--- | :--- |
+| **P0** | **Critical Foundation** | Platform Strategy Pattern, SecurityAgent, ValidationAgent, Intent Registry, Step 1 (Intent), Step 2 (Text Dump). |
+| **P1** | **Core Value** | Step 3 (Hooks/Structure), Step 4 (Polished Post), **Voice Dictation (English)**. |
+| **P2** | **Advanced Polish** | Step 5 (Variations), Step 6 (Final Output), Regenerate logic, Inline Editing, Session Persistence. |
+| **P3** | **Global Expansion** | **Multi-lingual Translation**, Multi-Platform (IG, TikTok, etc.), Advanced Export. |
+
+---
 
 ## User Experience (UX) Stories
 
 | Step | User Story | Acceptance Criteria |
 | :--- | :--- | :--- |
-| **1. Intent** | As a creator, I want to **set a clear goal** for my post (e.g., share a lesson, tell a story) so the AI can tailor the angle and CTA correctly. | • Visual cards for 6 intents.<br>• Optional fields for Audience, Tone, and Avoid-list. |
-| **2. Dump** | As a busy professional, I want to **dump my "half-baked" thoughts** into a low-friction input area so I can get ideas out without worrying about quality. | • Large, auto-growing text area.<br>• Encouraging "messy" placeholder text. |
-| **3. Choose** | As a strategist, I want to **preview 3 different hook options** and post structures so I can decide which "hook" will actually stop the scroll. | • 3 generated hook/angle cards.<br>• Clear display of suggested structure/CTA.<br>• Single-selection mechanism. |
-| **4. Polish** | As an editor, I want the AI to **generate a "human-sounding" draft** based on my selected hook so I don't have to deal with "corporate fluff." | • Post generated using the chosen structure.<br>• Automatic filtering of common "AI-isms."<br>• Professional formatting (line breaks, etc.). |
-| **5. Adapt** | As a content marketer, I want to **generate 5 variations** (e.g., "Short," "Storytelling") so I can repurpose the content or test different formats. | • 5 distinct variant cards/tabs.<br>• One-click swap to make a variant the "final" copy. |
-| **6. Publish** | As a user, I want to **edit, copy, and save** my final post so that it is ready to be pasted directly into LinkedIn. | • Inline editing of the final draft.<br>• Persistent "Save to Sessions" functionality.<br>• Export to PDF/Word/Markdown. |
+| **0. Platform** | As a creator, I want to **select my target platform** (starting with LinkedIn) so the AI adapts to specific constraints and cultural nuances. | • Platform selector (LinkedIn default).<br>• Strategy-based configuration per platform. |
+| **1. Intent** | As a creator, I want to **choose a strategic intent** (e.g., "Tell a story," "Build authority") so the AI adopts the correct framework. | • Extensible registry of intents.<br>• Intent-specific prompt blueprints. |
+| **2. Dump** | As a busy professional, I want to **dictate or type my messy thoughts** into a low-friction area so I can capture ideas while they are fresh. | • Auto-growing text area.<br>• **Voice-to-Text (Deepgram)**: Real-time, accent-robust transcription.<br>• **Translation**: Optional native-to-target language conversion. |
+| **3. Choose** | As a strategist, I want to **preview 3 different hook options** and a recommended angle so I can choose the strongest entry point. | • 3 generated hook cards.<br>• Display of **Recommended Angle** and **Core Message**.<br>• Single-selection mechanism. |
+| **4. Polish** | As an editor, I want the AI to **generate a "human-sounding" draft** using my chosen hook and structure, avoiding all AI-isms. | • Post generation using the chosen hook/angle.<br>• Automatic filtering of "AI-isms" (e.g., "In today's fast-paced world").<br>• Professional formatting. |
+| **5. Adapt** | As a marketer, I want to **generate contextual variations** (e.g., "Short," "Authoritative") to find the perfect fit for my specific goal. | • Configurable set of variation cards.<br>• One-click swap to make a variant the final copy. |
+| **6. Publish** | As a user, I want to **edit, copy, and save** my final post so that it is ready to be pasted directly into LinkedIn. | • Inline editing of the final draft.<br>• **Regenerate** capability for specific sections.<br>• Export to PDF/Word/Markdown. |
+
+---
 
 ## Technical User Stories (Engine Room)
 
 | Goal | User Story | Acceptance Criteria |
 | :--- | :--- | :--- |
-| **Quality** | As a system, I want to **run all workflow steps through the ValidationAgent** so that we catch hallucinations or generic phrases before the user sees them. | • Quality score > 7 for all workflow outputs.<br>• Human-like guidelines enforced at the prompt level. |
-| **Speed** | As a user, I want **parallel generation for variations** so that I don't have to wait 30 seconds for 5 different versions. | • Parallelized LLM calls for variations.<br>• Smooth loading states per variation card. |
-| **Security** | As a system, I want to **sanitize inbound messy ideas** so that we don't leak PII or process toxic prompts. | • SecurityAgent scanning on Step 2 input. |
+| **Strategy** | As a developer, I want to use a **Strategy Registry Pattern** for platforms and intents so that the system is easily extendable. | • Modular `PlatformStrategy` objects.<br>• Decoupled prompt builders from UI logic. |
+| **Voice** | As a system, I want to use **Deepgram Nova-2 via WebSocket** to provide ultra-low latency, accent-aware transcription. | • < 300ms latency for transcription.<br>• Support for real-time punctuation and formatting. |
+| **Translation** | As a global user, I want to use **Whisper/Deepgram Translation** to dictate in my native language and see target-language text. | • High-accuracy semantic translation.<br>• Support for 30+ input languages. |
+| **Quality** | As a system, I want to **run all steps through the ValidationAgent** to ensure human-like quality and zero hallucinations. | • Quality score > 7 required for generation.<br>• Human-like writing guidelines enforced at the prompt level. |
+| **Security** | As a system, I want to **sanitize inbound messy ideas** to prevent PII leaks or prompt injection attacks. | • SecurityAgent scanning on all user-provided text. |
