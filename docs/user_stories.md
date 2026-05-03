@@ -36,3 +36,35 @@ This document outlines the user and technical requirements for the LinkedIn-firs
 | **Translation** | As a global user, I want to use **Whisper/Deepgram Translation** to dictate in my native language and see target-language text. | • High-accuracy semantic translation.<br>• Support for 30+ input languages. |
 | **Quality** | As a system, I want to **run all steps through the ValidationAgent** to ensure human-like quality and zero hallucinations. | • Quality score > 7 required for generation.<br>• Human-like writing guidelines enforced at the prompt level. |
 | **Security** | As a system, I want to **sanitize inbound messy ideas** to prevent PII leaks or prompt injection attacks. | • SecurityAgent scanning on all user-provided text. |
+
+---
+
+## Task Checklist: Step-by-Step Implementation
+
+### [P0] Critical Foundation
+- [ ] **Backend**: Create `PlatformStrategy` interface and initial `LinkedInStrategy`.
+- [ ] **Backend**: Implement `IntentRegistry` with core strategic blueprints.
+- [ ] **Backend**: Implement `SecurityAgent` inbound scanning logic.
+- [ ] **Backend**: Integrate `ValidationAgent` into the workflow pipeline.
+- [ ] **Frontend**: Build `PlatformSelector` and `IntentGrid` components.
+- [ ] **Frontend**: Create Step 2 "Messy Dump" text input area.
+
+### [P1] Core Value
+- [ ] **Backend**: Implement `generateStructurePrompt()` (Step 3 engine).
+- [ ] **Backend**: Implement `generatePostPrompt()` (Step 4 engine).
+- [ ] **Backend**: Create `/api/workflow` endpoints for Structure and Post generation.
+- [ ] **Technical**: Implement Deepgram WebSocket relay for real-time dictation.
+- [ ] **Frontend**: Build Step 3 Hook Selection UI.
+- [ ] **Frontend**: Build Step 4 Polished Post Display.
+
+### [P2] Advanced Polish
+- [ ] **Backend**: Implement Parallel Variations engine (Step 5).
+- [ ] **Backend**: Extend `Post` model for Workflow metadata persistence.
+- [ ] **Frontend**: Build Step 5 Variation Matrix (Tabs/Grid).
+- [ ] **Frontend**: Build Step 6 Final Editor & Export tools.
+- [ ] **Frontend**: Implement Step 6 "Regenerate" section logic.
+
+### [P3] Global Expansion
+- [ ] **Technical**: Implement Multi-lingual translation in the Voice Engine.
+- [ ] **Backend**: Add `InstagramStrategy` and `TikTokStrategy`.
+- [ ] **Frontend**: Build platform-specific social feed previews.
