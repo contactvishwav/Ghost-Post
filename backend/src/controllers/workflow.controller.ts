@@ -191,20 +191,23 @@ export const saveWorkflowSession = async (req: Request, res: Response) => {
             post = await prisma.post.update({
                 where: { id },
                 data: {
-                    title: title || 'Workflow Draft',
-                    content: content || '',
+                    rawThoughts: workflowMetadata?.rawThoughts || '',
+                    enhancedPost: content || '',
+                    tone: workflowMetadata?.intentId || 'professional',
+                    hookScore: 0,
+                    hashtags: [],
                     workflowMetadata: workflowMetadata || {}
                 }
             });
         } else {
             post = await prisma.post.create({
                 data: {
-                    title: title || 'Workflow Draft',
-                    content: content || '',
-                    status: 'DRAFT',
-                    platform: workflowMetadata?.platform || 'linkedin',
+                    rawThoughts: workflowMetadata?.rawThoughts || '',
+                    enhancedPost: content || '',
+                    tone: workflowMetadata?.intentId || 'professional',
+                    hookScore: 0,
+                    hashtags: [],
                     workflowMetadata: workflowMetadata || {},
-                    authorId: 'user_default', // Hardcoded for single-user environment currently
                 }
             });
         }
@@ -224,9 +227,7 @@ export const publishWorkflow = async (req: Request, res: Response) => {
         const post = await prisma.post.update({
             where: { id },
             data: {
-                content,
-                status: 'PUBLISHED',
-                publishedAt: new Date()
+                enhancedPost: content,
             }
         });
 
