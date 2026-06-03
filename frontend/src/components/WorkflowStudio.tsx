@@ -6,6 +6,7 @@ import DumpEditor from './workflow/DumpEditor';
 import HookSelector from './workflow/HookSelector';
 import type { HookVariant } from './workflow/HookSelector';
 import PostPreview from './workflow/PostPreview';
+import AdaptationStudio from './workflow/AdaptationStudio';
 import { logger } from '../utils/logger';
 
 // Types
@@ -20,6 +21,7 @@ export interface WorkflowState {
     hooks: HookVariant[];
     selectedHookId: string | null;
     postContent: string | null;
+    workflowId: string | null;
 }
 
 const steps = [
@@ -41,6 +43,7 @@ export default function WorkflowStudio() {
         hooks: [],
         selectedHookId: null,
         postContent: null,
+        workflowId: null,
     });
     
     const [isLoading, setIsLoading] = useState(false);
@@ -101,6 +104,65 @@ export default function WorkflowStudio() {
         } else {
             logger.info(`Advancing from step ${state.step} to ${state.step + 1}`);
             updateState({ step: state.step + 1 });
+        }
+    };
+
+    const handleSaveSession = async () => {
+        try {
+            setIsLoading(true);
+            const res = await fetch('/api/workflow/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-request-id': crypto.randomUUID() },
+                body: JSON.stringify({
+                    id: state.workflowId,
+                    title: `Draft: ${state.intentId || 'Post'}`,
+                    content: state.postContent || '',
+                    workflowMetadata: {
+                        step: state.step,
+                        platform: state.platform,
+                        intentId: state.intentId,
+                        rawThoughts: state.rawThoughts,
+                        sanitizedInput: state.sanitizedInput,
+                        hooks: state.hooks,
+                        selectedHookId: state.selectedHookId
+                    }
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            updateState({ workflowId: data.post.id });
+            alert('Session saved successfully!');
+        } catch (err: any) {
+            alert(`Failed to save session: ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handlePublish = async () => {
+        if (!state.workflowId) {
+            alert('Please save the session first.');
+            return;
+        }
+        try {
+            setIsLoading(true);
+            const res = await fetch('/api/workflow/publish', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-request-id': crypto.randomUUID() },
+                body: JSON.stringify({
+                    id: state.workflowId,
+                    content: state.postContent
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            alert('Post officially published/saved to DB!');
+            // Reset to beginning or navigate to dashboard
+            window.location.href = '/'; 
+        } catch (err: any) {
+            alert(`Failed to publish: ${err.message}`);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -203,6 +265,53 @@ export default function WorkflowStudio() {
                                 </button>
                             </div>
                         )}
+                    </div>
+                );
+            case 5:
+                return (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <AdaptationStudio 
+                            currentContent={state.postContent || ''}
+                            onUpdateContent={(content) => updateState({ postContent: content })}
+                            onSave={handleSaveSession}
+                            isSaving={isLoading}
+                        />
+                        <div className="flex justify-between pt-6">
+                            <button onClick={handleBack} className="text-[var(--text-2)] hover:text-[var(--text-1)] px-4 py-2 text-sm font-light transition-colors">
+                                Back
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                className="flex items-center gap-2 bg-[var(--success)] text-[var(--void)] px-6 py-2.5 rounded-[4px] font-geist text-sm uppercase tracking-wider hover:bg-[var(--success)]/90 transition-colors"
+                            >
+                                Finalize & Publish <FileCheck size={14} />
+                            </button>
+                        </div>
+                    </div>
+                );
+            case 6:
+                return (
+                    <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
+                        <div className="w-20 h-20 bg-[var(--success)]/20 rounded-full flex items-center justify-center mb-6 border border-[var(--success)]/30">
+                            <FileCheck size={32} className="text-[var(--success)]" />
+                        </div>
+                        <h2 className="text-3xl font-geist tracking-wide text-[var(--text-1)] mb-4">Ready to Publish</h2>
+                        <p className="text-[var(--text-3)] max-w-md mx-auto mb-10 text-lg font-light">
+                            Your content is perfectly formatted for {state.platform} and safely backed up. Hit publish to sync this to your production database.
+                        </p>
+                        
+                        <div className="flex items-center gap-4">
+                            <button onClick={handleBack} className="text-[var(--text-2)] hover:text-[var(--text-1)] px-6 py-3 font-light transition-colors">
+                                Make one last edit
+                            </button>
+                            <button 
+                                onClick={handlePublish}
+                                disabled={isLoading}
+                                className="flex items-center gap-2 bg-[var(--success)] text-[var(--void)] px-8 py-3 rounded-[6px] font-geist uppercase tracking-wider hover:bg-[var(--success)]/90 transition-all shadow-[0_0_20px_rgba(var(--success-rgb),0.3)] disabled:opacity-50"
+                            >
+                                {isLoading ? 'Publishing...' : 'Confirm Publish'}
+                            </button>
+                        </div>
                     </div>
                 );
             default:

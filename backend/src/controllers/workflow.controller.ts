@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
 import { SecurityAgent } from '../services/agents/security.agent';
 import { DraftingAgent } from '../services/agents/drafting.agent';
 import { intentRegistry } from '../services/workflow/intent.registry';
@@ -120,5 +121,118 @@ Write the rest of the post following the hook. Return ONLY the post text. No pre
     } catch (error: any) {
         logger.error({ error }, 'Failed to generate post');
         res.status(500).json({ error: 'Failed to generate post' });
+    }
+};
+
+export const generateVariations = async (req: Request, res: Response) => {
+    try {
+        const { currentPost, preset } = req.body;
+        const requestId = req.headers['x-request-id'] as string;
+
+        if (!currentPost || !preset) {
+            return res.status(400).json({ error: 'Missing currentPost or preset' });
+        }
+
+        const draftingAgent = new DraftingAgent(requestId);
+
+        let instruction = '';
+        switch (preset) {
+            case 'shorter':
+                instruction = 'Make this post significantly shorter, punchier, and more concise. Cut the fluff but keep the core message and the exact same hook.';
+                break;
+            case 'academic':
+                instruction = 'Rewrite this post to be more professional, data-driven, and formal. Remove slang. Keep the core message and the exact same hook.';
+                break;
+            case 'emojis':
+                instruction = 'Add relevant emojis to format this post better for social media reading (bullet points, emphasis). Do not change the text length much. Keep the hook.';
+                break;
+            case 'softer':
+                instruction = 'Rewrite this to sound more empathetic, collaborative, and softer in tone. Keep the core message and the exact same hook.';
+                break;
+            default:
+                instruction = preset; // Custom instruction
+        }
+
+        const prompt = `
+You are an elite Social Media Copywriter. 
+I have a draft of a post. I need you to create a variation based on these specific instructions:
+INSTRUCTION: ${instruction}
+
+ORIGINAL DRAFT:
+"""
+${currentPost}
+"""
+
+Return ONLY the new variation text. No preamble. No quotes around the text.
+`;
+
+        const response = await draftingAgent.generateDraft(prompt);
+        
+        if (!response.success) {
+            return res.status(500).json({ error: 'Failed to generate variation' });
+        }
+
+        res.json({ variation: response.data });
+    } catch (error: any) {
+        logger.error({ error }, 'Failed to generate variation');
+        res.status(500).json({ error: 'Failed to generate variation' });
+    }
+};
+
+const prisma = new PrismaClient();
+
+export const saveWorkflowSession = async (req: Request, res: Response) => {
+    try {
+        const { id, title, content, workflowMetadata } = req.body;
+        
+        // Either update existing or create new
+        let post;
+        if (id) {
+            post = await prisma.post.update({
+                where: { id },
+                data: {
+                    title: title || 'Workflow Draft',
+                    content: content || '',
+                    workflowMetadata: workflowMetadata || {}
+                }
+            });
+        } else {
+            post = await prisma.post.create({
+                data: {
+                    title: title || 'Workflow Draft',
+                    content: content || '',
+                    status: 'DRAFT',
+                    platform: workflowMetadata?.platform || 'linkedin',
+                    workflowMetadata: workflowMetadata || {},
+                    authorId: 'user_default', // Hardcoded for single-user environment currently
+                }
+            });
+        }
+
+        res.json({ post });
+    } catch (error: any) {
+        logger.error({ error }, 'Failed to save workflow session');
+        res.status(500).json({ error: 'Failed to save workflow session' });
+    }
+};
+
+export const publishWorkflow = async (req: Request, res: Response) => {
+    try {
+        const { id, content } = req.body;
+        if (!id) return res.status(400).json({ error: 'Post ID required for publishing' });
+
+        const post = await prisma.post.update({
+            where: { id },
+            data: {
+                content,
+                status: 'PUBLISHED',
+                publishedAt: new Date()
+            }
+        });
+
+        res.json({ post });
+    } catch (error: any) {
+        logger.error({ error }, 'Failed to publish workflow');
+        res.status(500).json({ error: 'Failed to publish workflow' });
     }
 };
