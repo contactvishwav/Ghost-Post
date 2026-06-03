@@ -1,6 +1,5 @@
-import React from 'react';
 import { Linkedin, Instagram, Video } from 'lucide-react';
-import { Platform } from '../WorkflowStudio';
+import type { Platform } from '../WorkflowStudio';
 
 interface PlatformSelectorProps {
     selected: Platform;
@@ -26,17 +25,17 @@ export default function PlatformSelector({ selected, onSelect }: PlatformSelecto
                             key={p.id}
                             disabled={p.disabled}
                             onClick={() => onSelect(p.id as Platform)}
-                            className={\`relative overflow-hidden flex flex-col items-start p-6 rounded-[8px] border text-left transition-all duration-300 \${
+                            className={`relative overflow-hidden flex flex-col items-start p-6 rounded-[8px] border text-left transition-all duration-300 ${
                                 p.disabled ? 'opacity-40 cursor-not-allowed border-[var(--border)] bg-[var(--void-surface)]' :
                                 isSelected ? 'border-[var(--violet)] bg-[var(--violet-dim)] shadow-[0_0_20px_rgba(var(--violet-rgb),0.1)]' :
                                 'border-[var(--border)] bg-[var(--void-surface)] hover:border-[var(--text-3)] hover:bg-[var(--void-surface-2)]'
-                            }\`}
+                            }`}
                         >
                             <div className="flex items-center gap-3 mb-3">
-                                <div className={\`p-2 rounded-full \${isSelected ? 'bg-[var(--violet)] text-white' : 'bg-[var(--void)] text-[var(--text-2)]'}\`}>
+                                <div className={`p-2 rounded-full ${isSelected ? 'bg-[var(--violet)] text-white' : 'bg-[var(--void)] text-[var(--text-2)]'}`}>
                                     <Icon size={20} />
                                 </div>
-                                <span className={\`font-medium text-lg \${isSelected ? 'text-[var(--violet)]' : 'text-[var(--text-1)]'}\`}>
+                                <span className={`font-medium text-lg ${isSelected ? 'text-[var(--violet)]' : 'text-[var(--text-1)]'}`}>
                                     {p.name}
                                 </span>
                             </div>

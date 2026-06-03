@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Layers, Lightbulb, PenTool, GitMerge, FileCheck, Send, Sparkles } from 'lucide-react';
 import PlatformSelector from './workflow/PlatformSelector';
 import IntentGrid from './workflow/IntentGrid';
@@ -127,7 +127,7 @@ export default function WorkflowStudio() {
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1px] bg-[var(--border)] -z-10" />
                     <div 
                         className="absolute left-0 top-1/2 -translate-y-1/2 h-[1px] bg-[var(--violet)] -z-10 transition-all duration-500 ease-in-out" 
-                        style={{ width: \`\${((state.step - 1) / (steps.length - 1)) * 100}%\` }}
+                        style={{ width: `${((state.step - 1) / (steps.length - 1)) * 100}%` }}
                     />
                     
                     {steps.map((s) => {
@@ -137,18 +137,18 @@ export default function WorkflowStudio() {
                         
                         return (
                             <div key={s.id} className="flex flex-col items-center gap-3 bg-[var(--void)] px-4">
-                                <div className={\`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-300 \${
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-300 ${
                                     isActive ? 'bg-[var(--violet-dim)] border-[var(--violet)] text-[var(--violet)] shadow-[0_0_15px_rgba(var(--violet-rgb),0.3)]' :
                                     isCompleted ? 'bg-[var(--violet)] border-[var(--violet)] text-white' :
                                     'bg-[var(--void-surface)] border-[var(--border)] text-[var(--text-3)]'
-                                }\`}>
+                                }`}>
                                     <Icon size={16} />
                                 </div>
-                                <span className={\`text-xs font-geist uppercase tracking-wider \${
+                                <span className={`text-xs font-geist uppercase tracking-wider ${
                                     isActive ? 'text-[var(--text-1)]' :
                                     isCompleted ? 'text-[var(--violet)]' :
                                     'text-[var(--text-3)]'
-                                }\`}>
+                                }`}>
                                     {s.label}
                                 </span>
                             </div>

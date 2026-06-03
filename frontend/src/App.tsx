@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useForm, FormProvider } from 'react-hook-form';
 import axios from 'axios';
-import { Sparkles, LayoutDashboard, Settings, Plus, History, Zap, Palette, Layers, ChevronDown, ArrowUp, Link2, FileText, Octagon, BarChart3, RotateCcw, Eye } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Settings, History, Zap, Palette, Layers, ChevronDown, ArrowUp, Link2, FileText, Octagon, BarChart3, RotateCcw, Eye } from 'lucide-react';
 import OutputDisplay from './components/OutputDisplay';
 import Newsroom from './components/Newsroom';
 import SettingsView from './components/Settings';

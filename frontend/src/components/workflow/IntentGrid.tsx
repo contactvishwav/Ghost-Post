@@ -1,4 +1,3 @@
-import React from 'react';
 import { BookOpen, Award, Zap, Trophy, List, MessageCircle } from 'lucide-react';
 
 interface IntentGridProps {
@@ -27,14 +26,14 @@ export default function IntentGrid({ selectedId, onSelect }: IntentGridProps) {
                         <button
                             key={intent.id}
                             onClick={() => onSelect(intent.id)}
-                            className={\`flex flex-col items-start p-5 rounded-[6px] border text-left transition-all duration-300 \${
+                            className={`flex flex-col items-start p-5 rounded-[6px] border text-left transition-all duration-300 ${
                                 isSelected ? 'border-[var(--plasma)] bg-[var(--plasma-dim)] shadow-[0_0_15px_rgba(var(--plasma-rgb),0.1)]' :
                                 'border-[var(--border)] bg-[var(--void-surface)] hover:border-[var(--text-3)] hover:bg-[var(--void-surface-2)]'
-                            }\`}
+                            }`}
                         >
                             <div className="flex items-center gap-3 mb-2">
                                 <Icon size={18} className={isSelected ? 'text-[var(--plasma)]' : 'text-[var(--text-2)]'} />
-                                <span className={\`font-medium \${isSelected ? 'text-[var(--plasma)]' : 'text-[var(--text-1)]'}\`}>
+                                <span className={`font-medium ${isSelected ? 'text-[var(--plasma)]' : 'text-[var(--text-1)]'}`}>
                                     {intent.label}
                                 </span>
                             </div>
