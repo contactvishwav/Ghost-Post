@@ -15,6 +15,7 @@ model Post {
   hookScore       Int
   hookTip         String?
   hashtags        String[]
+  workflowMetadata Json?    // Stores platform-specific strategy, intent, variations
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

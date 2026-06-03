@@ -9,6 +9,7 @@ import SettingsView from './components/Settings';
 import Sessions from './components/Sessions';
 import AdminDashboard from './components/AdminDashboard';
 import Watchlist from './components/Watchlist';
+import WorkflowStudio from './components/WorkflowStudio';
 import { useEnhance, type EnhanceResponse } from './hooks/useEnhance';
 
 const queryClient = new QueryClient();
@@ -30,7 +31,7 @@ function AppContent() {
     const [showToneMenu, setShowToneMenu] = useState(false);
     const [showModeMenu, setShowModeMenu] = useState(false);
     const [showInputTypeMenu, setShowInputTypeMenu] = useState(false);
-    const [activeView, setActiveView] = useState<'enhance' | 'sessions' | 'pipelines' | 'settings' | 'admin' | 'watchlist'>('enhance');
+    const [activeView, setActiveView] = useState<'workflow' | 'enhance' | 'sessions' | 'pipelines' | 'settings' | 'admin' | 'watchlist'>('workflow');
     
     const [userName, setUserName] = useState('Ghost Writer');
     const enhanceMutation = useEnhance();
@@ -178,11 +179,18 @@ function AppContent() {
                         </div>
                         
                         <button 
+                            onClick={() => setActiveView('workflow')}
+                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-r-[3px] text-[var(--text-sm)] transition-all font-light ${activeView === 'workflow' ? 'bg-[var(--plasma-dim)] text-[var(--plasma)] border-l-2 border-[var(--plasma)]' : 'text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-white/[0.03]'}`}
+                        >
+                            <Layers size={14} />
+                            Billboard Workflow
+                        </button>
+                        <button 
                             onClick={() => setActiveView('enhance')}
-                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-r-[3px] text-[var(--text-sm)] transition-all font-light ${activeView === 'enhance' ? 'bg-[var(--plasma-dim)] text-[var(--plasma)] border-l-2 border-[var(--plasma)]' : 'text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-white/[0.03]'}`}
+                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[3px] text-[var(--text-sm)] transition-all font-light ${activeView === 'enhance' ? 'bg-[var(--plasma-dim)] text-[var(--plasma)] border-l-2 border-[var(--plasma)]' : 'text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-white/[0.03]'}`}
                         >
                             <LayoutDashboard size={14} />
-                            Ghost Post
+                            Enhancer
                         </button>
                         <button 
                             onClick={() => setActiveView('watchlist')}
@@ -254,6 +262,8 @@ function AppContent() {
                         <AdminDashboard />
                     ) : activeView === 'watchlist' ? (
                         <Watchlist />
+                    ) : activeView === 'workflow' ? (
+                        <WorkflowStudio />
                     ) : (
                         <>
                             {/* TOPBAR */}
