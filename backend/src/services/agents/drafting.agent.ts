@@ -109,6 +109,52 @@ export class DraftingAgent extends BaseAgent {
         });
     }
 
+    /**
+     * Generates a raw draft from a completely custom prompt.
+     * Resilience Pattern: Wrapped in withRetry.
+     */
+    public async generateDraft(prompt: string): Promise<AgentResponse> {
+        this.log('Generating custom draft...');
+
+        if (config.drafting.isMockMode) {
+            return {
+                success: true,
+                data: "This is a generated mock response for the custom prompt.",
+            };
+        }
+
+        return this.withRetry(async () => {
+            const baseUrl = config.helicone.enabled ? config.helicone.baseUrl : config.drafting.url;
+            const requestBody = {
+                model: config.drafting.model,
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are an elite copywriter and ghostwriter. Provide exactly what is asked. Do not include any preamble or meta commentary.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: 2000,
+            };
+
+            const response = await axios.post(baseUrl, requestBody, {
+                headers: {
+                    'Authorization': `Bearer ${config.drafting.apiKey}`,
+                    'Content-Type': 'application/json',
+                    ...this.getHeliconeHeaders('drafting-custom')
+                }
+            });
+
+            let content = response.data.choices[0].message.content;
+            if (!content) throw new Error('No content returned from Drafting Agent');
+
+            return { success: true, data: content };
+        });
+    }
+
     private getMockResearch(topic: string): string {
         return `
             Mock Research Data for: "${topic}"
