@@ -9,6 +9,7 @@ import enhanceRouter from './routes/enhance.routes';
 import researchRouter from './routes/research.routes';
 import dataRouter from './routes/data.routes';
 import adminRouter from './routes/admin.routes';
+import workflowRouter from './routes/workflow.routes';
 
 const app = express();
 const port = config.port;
@@ -40,6 +41,7 @@ app.use('/api/enhance', enhanceRouter);
 app.use('/api/research', researchRouter);
 app.use('/api/data', dataRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/workflow', workflowRouter);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -60,9 +62,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 import { governanceService } from './services/governance.service';
+import { setupVoiceRelay } from './services/voice.service';
 
 const server = app.listen(port, '0.0.0.0', () => {
     logger.info(`Server is running on port ${port} and listening on 0.0.0.0`);
+    
+    // Attach Deepgram Voice Relay
+    setupVoiceRelay(server);
     
     // Maintenance: Purge logs older than 7 days on startup
     governanceService.purgeOldLogs(7);

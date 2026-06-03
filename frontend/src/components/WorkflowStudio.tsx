@@ -3,6 +3,9 @@ import { Layers, Lightbulb, PenTool, GitMerge, FileCheck, Send, Sparkles } from 
 import PlatformSelector from './workflow/PlatformSelector';
 import IntentGrid from './workflow/IntentGrid';
 import DumpEditor from './workflow/DumpEditor';
+import HookSelector from './workflow/HookSelector';
+import type { HookVariant } from './workflow/HookSelector';
+import PostPreview from './workflow/PostPreview';
 import { logger } from '../utils/logger';
 
 // Types
@@ -13,7 +16,10 @@ export interface WorkflowState {
     platform: Platform;
     intentId: string | null;
     rawThoughts: string;
-    // We will expand this as we build out the other steps
+    sanitizedInput: string | null;
+    hooks: HookVariant[];
+    selectedHookId: string | null;
+    postContent: string | null;
 }
 
 const steps = [
@@ -31,15 +37,71 @@ export default function WorkflowStudio() {
         platform: 'linkedin',
         intentId: null,
         rawThoughts: '',
+        sanitizedInput: null,
+        hooks: [],
+        selectedHookId: null,
+        postContent: null,
     });
+    
+    const [isLoading, setIsLoading] = useState(false);
 
     const updateState = (updates: Partial<WorkflowState>) => {
         setState(prev => ({ ...prev, ...updates }));
     };
 
-    const handleNext = () => {
-        logger.info(`Advancing from step ${state.step} to ${state.step + 1}`);
-        updateState({ step: state.step + 1 });
+    const handleNext = async () => {
+        if (state.step === 2) {
+            // Generate Hooks
+            try {
+                setIsLoading(true);
+                updateState({ step: 3, hooks: [], selectedHookId: null });
+                const res = await fetch('/api/workflow/hooks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-request-id': crypto.randomUUID() },
+                    body: JSON.stringify({
+                        platform: state.platform,
+                        intentId: state.intentId,
+                        rawThoughts: state.rawThoughts
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                updateState({ hooks: data.hooks, sanitizedInput: data.sanitizedInput });
+            } catch (err: any) {
+                alert(`Failed to generate hooks: ${err.message}`);
+                updateState({ step: 2 });
+            } finally {
+                setIsLoading(false);
+            }
+        } else if (state.step === 3) {
+            // Generate Post
+            try {
+                setIsLoading(true);
+                updateState({ step: 4, postContent: null });
+                const selectedHookText = state.hooks.find(h => h.id === state.selectedHookId)?.text;
+                const res = await fetch('/api/workflow/post', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-request-id': crypto.randomUUID() },
+                    body: JSON.stringify({
+                        platform: state.platform,
+                        intentId: state.intentId,
+                        sanitizedInput: state.sanitizedInput,
+                        selectedHook: selectedHookText
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                updateState({ postContent: data.post });
+            } catch (err: any) {
+                alert(`Failed to generate post: ${err.message}`);
+                updateState({ step: 3 });
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            logger.info(`Advancing from step ${state.step} to ${state.step + 1}`);
+            updateState({ step: state.step + 1 });
+        }
     };
 
     const handleBack = () => {
@@ -94,6 +156,53 @@ export default function WorkflowStudio() {
                                 Generate Hooks <Sparkles size={14} />
                             </button>
                         </div>
+                    </div>
+                );
+            case 3:
+                return (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <HookSelector 
+                            hooks={state.hooks} 
+                            selectedHookId={state.selectedHookId} 
+                            onSelect={(selectedHookId) => updateState({ selectedHookId })}
+                            isLoading={isLoading}
+                        />
+                        {!isLoading && state.hooks.length > 0 && (
+                            <div className="flex justify-between pt-6">
+                                <button onClick={handleBack} className="text-[var(--text-2)] hover:text-[var(--text-1)] px-4 py-2 text-sm font-light transition-colors">
+                                    Back
+                                </button>
+                                <button
+                                    onClick={handleNext}
+                                    disabled={!state.selectedHookId}
+                                    className="flex items-center gap-2 bg-[var(--plasma)] text-white px-6 py-2.5 rounded-[4px] font-geist text-sm uppercase tracking-wider hover:bg-[var(--plasma-dim)] hover:text-[var(--plasma)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Draft Full Post <Sparkles size={14} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            case 4:
+                return (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <PostPreview 
+                            postContent={state.postContent} 
+                            isLoading={isLoading} 
+                        />
+                        {!isLoading && state.postContent && (
+                            <div className="flex justify-between pt-6">
+                                <button onClick={handleBack} className="text-[var(--text-2)] hover:text-[var(--text-1)] px-4 py-2 text-sm font-light transition-colors">
+                                    Back
+                                </button>
+                                <button
+                                    onClick={handleNext}
+                                    className="flex items-center gap-2 bg-[var(--violet)] text-white px-6 py-2.5 rounded-[4px] font-geist text-sm uppercase tracking-wider hover:bg-[var(--violet-dim)] hover:text-[var(--violet)] transition-colors"
+                                >
+                                    Review Variations <Layers size={14} />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 );
             default:

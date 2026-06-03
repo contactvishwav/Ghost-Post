@@ -46,6 +46,9 @@ export interface Config {
         windowMs: number;
         max: number;
     };
+    deepgram: {
+        apiKey: string;
+    };
     extraction: {
         httpTimeout: number;
         userAgent: string;
@@ -155,6 +158,9 @@ const config: Config = {
     rateLimit: {
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 100, // limit each IP to 100 requests per windowMs
+    },
+    deepgram: {
+        apiKey: resolveKey(process.env.DEEPGRAM_API_KEY),
     },
     extraction: {
         httpTimeout: 5000,
