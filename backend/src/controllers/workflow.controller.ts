@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../db';
+import { asyncHandler } from '../utils/asyncHandler';
 import { SecurityAgent } from '../services/agents/security.agent';
 import { DraftingAgent } from '../services/agents/drafting.agent';
 import { intentRegistry } from '../services/workflow/intent.registry';
 import { LinkedInStrategy } from '../services/workflow/platform.strategy';
 import logger from '../utils/logger';
 
-export const generateHooks = async (req: Request, res: Response) => {
+export const generateHooks = asyncHandler(async (req: Request, res: Response) => {
     try {
         const { platform, intentId, rawThoughts } = req.body;
         const requestId = req.headers['x-request-id'] as string;
@@ -15,20 +16,17 @@ export const generateHooks = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Missing rawThoughts' });
         }
 
-        // Security check
         const securityAgent = new SecurityAgent(requestId);
         const securityResult = await securityAgent.validateInbound(rawThoughts);
         if (!securityResult.success) {
             return res.status(400).json({ error: securityResult.error || 'Security check failed' });
         }
-        
+
         const sanitizedInput = securityResult.data;
 
-        // Retrieve strategy & intent
         const strategy = platform === 'linkedin' ? new LinkedInStrategy() : new LinkedInStrategy();
         const intent = intentRegistry.getIntent(intentId) || intentRegistry.getIntent('share_lesson')!;
 
-        // Generate 3 parallel hooks with different variations
         const draftingAgent = new DraftingAgent(requestId);
 
         const hookTypes = [
@@ -70,9 +68,9 @@ Return ONLY the hook text (1-3 sentences). No quotes, no preamble.
         logger.error({ error }, 'Failed to generate hooks');
         res.status(500).json({ error: 'Failed to generate hooks' });
     }
-};
+});
 
-export const generatePost = async (req: Request, res: Response) => {
+export const generatePost = asyncHandler(async (req: Request, res: Response) => {
     try {
         const { platform, intentId, sanitizedInput, selectedHook } = req.body;
         const requestId = req.headers['x-request-id'] as string;
@@ -110,9 +108,9 @@ ${sanitizedInput}
 
 Write the rest of the post following the hook. Return ONLY the post text. No preamble.
 `;
-        
+
         const response = await draftingAgent.generateDraft(prompt);
-        
+
         if (!response.success) {
             return res.status(500).json({ error: 'Failed to draft post' });
         }
@@ -122,9 +120,9 @@ Write the rest of the post following the hook. Return ONLY the post text. No pre
         logger.error({ error }, 'Failed to generate post');
         res.status(500).json({ error: 'Failed to generate post' });
     }
-};
+});
 
-export const generateVariations = async (req: Request, res: Response) => {
+export const generateVariations = asyncHandler(async (req: Request, res: Response) => {
     try {
         const { currentPost, preset } = req.body;
         const requestId = req.headers['x-request-id'] as string;
@@ -150,11 +148,11 @@ export const generateVariations = async (req: Request, res: Response) => {
                 instruction = 'Rewrite this to sound more empathetic, collaborative, and softer in tone. Keep the core message and the exact same hook.';
                 break;
             default:
-                instruction = preset; // Custom instruction
+                instruction = preset;
         }
 
         const prompt = `
-You are an elite Social Media Copywriter. 
+You are an elite Social Media Copywriter.
 I have a draft of a post. I need you to create a variation based on these specific instructions:
 INSTRUCTION: ${instruction}
 
@@ -167,7 +165,7 @@ Return ONLY the new variation text. No preamble. No quotes around the text.
 `;
 
         const response = await draftingAgent.generateDraft(prompt);
-        
+
         if (!response.success) {
             return res.status(500).json({ error: 'Failed to generate variation' });
         }
@@ -177,63 +175,48 @@ Return ONLY the new variation text. No preamble. No quotes around the text.
         logger.error({ error }, 'Failed to generate variation');
         res.status(500).json({ error: 'Failed to generate variation' });
     }
-};
+});
 
-const prisma = new PrismaClient();
+export const saveWorkflowSession = asyncHandler(async (req: Request, res: Response) => {
+    const { id, content, workflowMetadata } = req.body;
 
-export const saveWorkflowSession = async (req: Request, res: Response) => {
-    try {
-        const { id, title, content, workflowMetadata } = req.body;
-        
-        // Either update existing or create new
-        let post;
-        if (id) {
-            post = await prisma.post.update({
-                where: { id },
-                data: {
-                    rawThoughts: workflowMetadata?.rawThoughts || '',
-                    enhancedPost: content || '',
-                    tone: workflowMetadata?.intentId || 'professional',
-                    hookScore: 0,
-                    hashtags: [],
-                    workflowMetadata: workflowMetadata || {}
-                }
-            });
-        } else {
-            post = await prisma.post.create({
-                data: {
-                    rawThoughts: workflowMetadata?.rawThoughts || '',
-                    enhancedPost: content || '',
-                    tone: workflowMetadata?.intentId || 'professional',
-                    hookScore: 0,
-                    hashtags: [],
-                    workflowMetadata: workflowMetadata || {},
-                }
-            });
-        }
-
-        res.json({ post });
-    } catch (error: any) {
-        logger.error({ error }, 'Failed to save workflow session');
-        res.status(500).json({ error: 'Failed to save workflow session' });
-    }
-};
-
-export const publishWorkflow = async (req: Request, res: Response) => {
-    try {
-        const { id, content } = req.body;
-        if (!id) return res.status(400).json({ error: 'Post ID required for publishing' });
-
-        const post = await prisma.post.update({
+    let post;
+    if (id) {
+        post = await prisma.post.update({
             where: { id },
             data: {
-                enhancedPost: content,
+                rawThoughts: workflowMetadata?.rawThoughts || '',
+                enhancedPost: content || '',
+                tone: workflowMetadata?.intentId || 'professional',
+                hookScore: 0,
+                hashtags: [],
+                workflowMetadata: workflowMetadata || {}
             }
         });
-
-        res.json({ post });
-    } catch (error: any) {
-        logger.error({ error }, 'Failed to publish workflow');
-        res.status(500).json({ error: 'Failed to publish workflow' });
+    } else {
+        post = await prisma.post.create({
+            data: {
+                rawThoughts: workflowMetadata?.rawThoughts || '',
+                enhancedPost: content || '',
+                tone: workflowMetadata?.intentId || 'professional',
+                hookScore: 0,
+                hashtags: [],
+                workflowMetadata: workflowMetadata || {},
+            }
+        });
     }
-};
+
+    res.json({ post });
+});
+
+export const publishWorkflow = asyncHandler(async (req: Request, res: Response) => {
+    const { id, content } = req.body;
+    if (!id) return res.status(400).json({ error: 'Post ID required for publishing' });
+
+    const post = await prisma.post.update({
+        where: { id },
+        data: { enhancedPost: content }
+    });
+
+    res.json({ post });
+});

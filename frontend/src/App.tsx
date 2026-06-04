@@ -269,7 +269,7 @@ function AppContent() {
                     ) : activeView === 'watchlist' ? (
                         <Watchlist />
                     ) : activeView === 'workflow' ? (
-                        <WorkflowStudio />
+                        <WorkflowStudio onComplete={() => setActiveView('sessions')} />
                     ) : (
                         <>
                             {/* TOPBAR */}

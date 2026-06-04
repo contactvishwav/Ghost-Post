@@ -7,9 +7,9 @@ export class StandardProvider implements LLMProvider {
     private client: StandardClient | null = null;
 
     constructor() {
-        const apiKey = config.security.apiKey;
-        if (!config.security.isMockMode && apiKey) {
-            this.client = new StandardClient({ 
+        const apiKey = config.refinement.apiKey;
+        if (!config.refinement.isMockMode && apiKey) {
+            this.client = new StandardClient({
                 apiKey,
                 baseURL: config.helicone.enabled ? config.helicone.baseUrl : undefined
             });
@@ -33,7 +33,7 @@ export class StandardProvider implements LLMProvider {
 
         try {
             const response = await this.client.chat.completions.create({
-                model: config.security.model,
+                model: config.refinement.model,
                 messages: payload.map(p => ({ role: p.role, content: p.content })),
                 max_tokens: options?.maxTokens || 1000,
                 response_format: options?.responseFormat ? { type: options.responseFormat } : undefined,

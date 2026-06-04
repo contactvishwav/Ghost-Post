@@ -33,18 +33,24 @@ const steps = [
     { id: 6, label: 'Publish', icon: FileCheck },
 ];
 
-export default function WorkflowStudio() {
-    const [state, setState] = useState<WorkflowState>({
-        step: 1,
-        platform: 'linkedin',
-        intentId: null,
-        rawThoughts: '',
-        sanitizedInput: null,
-        hooks: [],
-        selectedHookId: null,
-        postContent: null,
-        workflowId: null,
-    });
+const INITIAL_STATE: WorkflowState = {
+    step: 1,
+    platform: 'linkedin',
+    intentId: null,
+    rawThoughts: '',
+    sanitizedInput: null,
+    hooks: [],
+    selectedHookId: null,
+    postContent: null,
+    workflowId: null,
+};
+
+interface WorkflowStudioProps {
+    onComplete?: () => void;
+}
+
+export default function WorkflowStudio({ onComplete }: WorkflowStudioProps) {
+    const [state, setState] = useState<WorkflowState>(INITIAL_STATE);
     
     const [isLoading, setIsLoading] = useState(false);
 
@@ -157,8 +163,8 @@ export default function WorkflowStudio() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
             alert('Post officially published/saved to DB!');
-            // Reset to beginning or navigate to dashboard
-            window.location.href = '/'; 
+            setState(INITIAL_STATE);
+            onComplete?.();
         } catch (err: any) {
             alert(`Failed to publish: ${err.message}`);
         } finally {
