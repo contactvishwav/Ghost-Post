@@ -1,33 +1,38 @@
+import axios from 'axios';
 import { BaseAgent, AgentResponse } from './base.agent';
-import { OpenAI as StandardClient } from 'openai';
 import config from '../../config';
 
 export class HookAgent extends BaseAgent {
-    private client: StandardClient | null = null;
-
     constructor(requestId?: string) {
         super('HookAgent', requestId);
-        const apiKey = config.drafting.apiKey;
-        if (!config.drafting.isMockMode && apiKey) {
-            this.client = new StandardClient({ apiKey });
-        }
     }
 
     async refineHooks(content: string, tone: string): Promise<AgentResponse> {
         this.log('Refining viral hooks in parallel...');
-        if (!this.client) return { success: true, data: '' };
+
+        if (config.drafting.isMockMode) {
+            return { success: true, data: '' };
+        }
 
         return this.withRetry(async () => {
-            const response = await this.client!.chat.completions.create({
+            const response = await axios.post(config.drafting.url, {
                 model: config.drafting.model,
                 messages: [
-                    { role: 'system', content: config.prompts.hook(tone, 'Pattern Interrupt', content) }
-                ]
+                    {
+                        role: 'system',
+                        content: config.prompts.hook(tone, 'Pattern Interrupt', content)
+                    }
+                ],
+                max_tokens: 500,
             }, {
-                headers: this.getHeliconeHeaders('hook-refinement')
-            } as any);
+                headers: {
+                    'Authorization': `Bearer ${config.drafting.apiKey}`,
+                    'Content-Type': 'application/json',
+                    ...this.getHeliconeHeaders('hook-refinement')
+                }
+            });
 
-            const hook = response.choices[0].message.content || '';
+            const hook = response.data.choices[0].message.content || '';
             return { success: true, data: hook };
         });
     }

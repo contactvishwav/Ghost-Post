@@ -12,6 +12,12 @@ export default function DumpEditor({ value, onChange }: DumpEditorProps) {
     const mediaRecorder = useRef<MediaRecorder | null>(null);
     const ws = useRef<WebSocket | null>(null);
     const stream = useRef<MediaStream | null>(null);
+    // Ref keeps the WebSocket onmessage callback in sync with the latest `value`
+    // without requiring the socket to be recreated on every keystroke.
+    const valueRef = useRef(value);
+    useEffect(() => {
+        valueRef.current = value;
+    }, [value]);
 
     const startRecording = async () => {
         try {
@@ -46,7 +52,8 @@ export default function DumpEditor({ value, onChange }: DumpEditorProps) {
                 if (response.channel && response.channel.alternatives[0]?.transcript) {
                     const transcript = response.channel.alternatives[0].transcript;
                     if (transcript.trim()) {
-                        onChange(value ? `${value} ${transcript}` : transcript);
+                        const current = valueRef.current;
+                        onChange(current ? `${current} ${transcript}` : transcript);
                     }
                 } else if (response.type === 'error') {
                     console.error('Deepgram Error:', response.message);

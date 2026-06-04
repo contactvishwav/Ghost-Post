@@ -141,7 +141,7 @@ export function TopicGrid({ onOpenArticle, mode = 'pipeline' }: { onOpenArticle:
         try {
             setIsGenerating(true);
             if (pendingDeletions.length > 0) {
-                await axios.post(`${API_BASE}/pipeline/delete-batch`, { ids: pendingDeletions });
+                await axios.post(`${API_BASE}/pipeline/bulk-delete`, { ids: pendingDeletions });
             }
             for (const id of pendingApprovals) {
                 await axios.patch(`${API_BASE}/pipeline/${id}`, { status: 'approved' });
