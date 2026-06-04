@@ -269,7 +269,9 @@ function AppContent() {
                     ) : activeView === 'watchlist' ? (
                         <Watchlist />
                     ) : activeView === 'workflow' ? (
-                        <WorkflowStudio onComplete={() => setActiveView('sessions')} />
+                        <div className="flex-1 overflow-y-auto">
+                            <WorkflowStudio onComplete={() => setActiveView('sessions')} />
+                        </div>
                     ) : (
                         <>
                             {/* TOPBAR */}

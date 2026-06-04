@@ -88,8 +88,20 @@ export const adminController = {
             }
 
             // Fall back to Postgres AgentLog table
-            const pgMetrics = await getPostgresMetrics();
-            res.status(200).json(pgMetrics);
+            try {
+                const pgMetrics = await getPostgresMetrics();
+                return res.status(200).json(pgMetrics);
+            } catch (pgError: any) {
+                logger.warn({ error: pgError.message }, 'Postgres AgentLog fallback failed — returning empty metrics');
+            }
+
+            // Final fallback: return empty dashboard rather than a 500
+            return res.status(200).json({
+                kpis: { total_requests: 0, avg_latency: 0, total_tokens: 0, total_cost: 0, success_rate: 100 },
+                volume: [],
+                models: [],
+                logs: [],
+            });
         } catch (error: any) {
             logger.error({ error: error.message }, 'Failed to fetch dashboard metrics');
             res.status(500).json({ error: 'Failed to fetch metrics' });
