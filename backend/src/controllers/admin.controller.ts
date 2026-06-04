@@ -6,17 +6,17 @@ import logger from '../utils/logger';
 
 async function getPostgresMetrics() {
     const [aggResult, modelRows, recentLogs, volumeRows] = await Promise.all([
-        (prisma as any).agentLog.aggregate({
+        prisma.agentLog.aggregate({
             _count: { id: true },
             _avg: { latencyMs: true },
             _sum: { tokenUsage: true, cost: true },
         }),
-        (prisma as any).agentLog.groupBy({
+        prisma.agentLog.groupBy({
             by: ['modelUsed'],
             _count: { id: true },
             orderBy: { _count: { id: 'desc' } },
         }),
-        (prisma as any).agentLog.findMany({
+        prisma.agentLog.findMany({
             orderBy: { createdAt: 'desc' },
             take: 10,
             select: {

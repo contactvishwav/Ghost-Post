@@ -1,5 +1,6 @@
 import logger from '../utils/logger';
 import { AgentOrchestrator } from './orchestrator.service';
+import { HookAgent } from './agents/hook.agent';
 import { extractAndParseJson } from '../utils/json.util';
 
 const orchestrator = new AgentOrchestrator();
@@ -114,16 +115,18 @@ export const enhancePost = async (text: string, options: EnhanceOptions = {}): P
 };
 
 /**
- * Generate Hook using the orchestrator.
+ * Generate Hook using the HookAgent directly — bypasses the full 7-step
+ * orchestration pipeline since hook generation needs one LLM call.
  */
 export const generateHook = async (text: string, tone: string, hookTip: string): Promise<string> => {
-    logger.info({ tone }, 'Generating custom hook via Multi-Agent system');
+    logger.info({ tone }, 'Generating custom hook via HookAgent');
 
-    const result = await orchestrator.runEnhancementPipeline(text, {
-        text, // Added missing property
-        mode: 'post',
-        tone: `Focus on the HOOK: ${tone}. Strategy: ${hookTip}`,
-    });
+    const hookAgent = new HookAgent();
+    const result = await hookAgent.refineHooks(text, tone, hookTip);
 
-    return result.finalContent;
+    if (!result.success) {
+        throw new Error('HookAgent failed to generate hook');
+    }
+
+    return result.data || '';
 };

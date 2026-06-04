@@ -25,10 +25,7 @@ export class GovernanceService {
         const { requestId, agentName } = data;
 
         try {
-            // Using the ORM instance from the centralized singleton.
-            // (prisma as any) is a temporary hint for the IDE until the TS Server refreshes,
-            // but the underlying call is the standard, optimized Prisma 'create'.
-            await (prisma as any).agentLog.create({
+            await prisma.agentLog.create({
                 data: {
                     ...data,
                     metadata: data.metadata || {}
@@ -55,7 +52,7 @@ export class GovernanceService {
             const cutoff = new Date();
             cutoff.setDate(cutoff.getDate() - days);
 
-            const result = await (prisma as any).agentLog.deleteMany({
+            const result = await prisma.agentLog.deleteMany({
                 where: {
                     createdAt: {
                         lt: cutoff

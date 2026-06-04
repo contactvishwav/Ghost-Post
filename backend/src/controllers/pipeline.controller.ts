@@ -4,8 +4,8 @@ import { asyncHandler } from '../utils/asyncHandler';
 import * as llmService from '../services/llm.service';
 import { v4 as uuidv4 } from 'uuid';
 
-export const getPipeline = asyncHandler(async (req: Request, res: Response) => {
-    const topics = await (prisma as any).pipelineTopic.findMany({
+export const getPipeline = asyncHandler(async (_req: Request, res: Response) => {
+    const topics = await prisma.pipelineTopic.findMany({
         where: { deletedAt: null },
         orderBy: { id: 'desc' }
     });
@@ -13,7 +13,7 @@ export const getPipeline = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createPipelineTopic = asyncHandler(async (req: Request, res: Response) => {
-    const topic = await (prisma as any).pipelineTopic.create({
+    const topic = await prisma.pipelineTopic.create({
         data: req.body
     });
     res.status(201).json(topic);
@@ -21,7 +21,7 @@ export const createPipelineTopic = asyncHandler(async (req: Request, res: Respon
 
 export const bulkCreatePipelineTopic = asyncHandler(async (req: Request, res: Response) => {
     const { topics } = req.body;
-    const result = await (prisma as any).pipelineTopic.createMany({
+    const result = await prisma.pipelineTopic.createMany({
         data: topics,
         skipDuplicates: true
     });
@@ -30,7 +30,7 @@ export const bulkCreatePipelineTopic = asyncHandler(async (req: Request, res: Re
 
 export const updatePipelineTopic = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const topic = await (prisma as any).pipelineTopic.update({
+    const topic = await prisma.pipelineTopic.update({
         where: { id: parseInt(id) },
         data: req.body
     });
@@ -40,7 +40,7 @@ export const updatePipelineTopic = asyncHandler(async (req: Request, res: Respon
 export const bulkUpdatePipeline = asyncHandler(async (req: Request, res: Response) => {
     const { updates } = req.body;
     const transactions = updates.map((u: any) => 
-        (prisma as any).pipelineTopic.update({
+        prisma.pipelineTopic.update({
             where: { id: u.key },
             data: u.changes
         })
@@ -51,7 +51,7 @@ export const bulkUpdatePipeline = asyncHandler(async (req: Request, res: Respons
 
 export const bulkDeletePipeline = asyncHandler(async (req: Request, res: Response) => {
     const { ids } = req.body;
-    await (prisma as any).pipelineTopic.updateMany({
+    await prisma.pipelineTopic.updateMany({
         where: { id: { in: ids } },
         data: { deletedAt: new Date() }
     });
@@ -61,7 +61,7 @@ export const bulkDeletePipeline = asyncHandler(async (req: Request, res: Respons
 export const generatePipelineTopic = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     
-    const topic = await (prisma as any).pipelineTopic.findUnique({
+    const topic = await prisma.pipelineTopic.findUnique({
         where: { id: parseInt(id) }
     });
 
@@ -92,7 +92,7 @@ export const generatePipelineTopic = asyncHandler(async (req: Request, res: Resp
 
     const data = results[targetTone as keyof typeof results];
 
-    const updated = await (prisma as any).pipelineTopic.update({
+    const updated = await prisma.pipelineTopic.update({
         where: { id: parseInt(id) },
         data: {
             status: 'generated',

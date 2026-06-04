@@ -3,8 +3,8 @@ import { prisma } from '../db';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ResearchService } from '../services/research.service';
 
-export const getWatchlist = asyncHandler(async (req: Request, res: Response) => {
-    const watchlist = await (prisma as any).watchlist.findMany({
+export const getWatchlist = asyncHandler(async (_req: Request, res: Response) => {
+    const watchlist = await prisma.watchlist.findMany({
         orderBy: [{ category: 'asc' }, { marketRank: 'asc' }]
     });
     res.json(watchlist);
@@ -32,7 +32,7 @@ export const refreshWatchlist = asyncHandler(async (req: Request, res: Response)
     const lastUpdate = new Date();
     
     for (const company of companies) {
-        await (prisma as any).watchlist.upsert({
+        await prisma.watchlist.upsert({
             where: { name: company.name },
             update: {
                 category,
@@ -48,7 +48,7 @@ export const refreshWatchlist = asyncHandler(async (req: Request, res: Response)
         });
     }
 
-    const updatedWatchlist = await (prisma as any).watchlist.findMany({
+    const updatedWatchlist = await prisma.watchlist.findMany({
         where: { category },
         orderBy: { marketRank: 'asc' }
     });
@@ -58,7 +58,7 @@ export const refreshWatchlist = asyncHandler(async (req: Request, res: Response)
 
 export const addToWatchlist = asyncHandler(async (req: Request, res: Response) => {
     const { name } = req.body;
-    const item = await (prisma as any).watchlist.create({
+    const item = await prisma.watchlist.create({
         data: { name }
     });
     res.status(201).json(item);
@@ -66,7 +66,7 @@ export const addToWatchlist = asyncHandler(async (req: Request, res: Response) =
 
 export const removeFromWatchlist = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    await (prisma as any).watchlist.delete({
+    await prisma.watchlist.delete({
         where: { id: parseInt(id) }
     });
     res.json({ success: true });
@@ -74,7 +74,7 @@ export const removeFromWatchlist = asyncHandler(async (req: Request, res: Respon
 
 export const bulkAddWatchlist = asyncHandler(async (req: Request, res: Response) => {
     const { items } = req.body;
-    await (prisma as any).watchlist.createMany({
+    await prisma.watchlist.createMany({
         data: items,
         skipDuplicates: true
     });

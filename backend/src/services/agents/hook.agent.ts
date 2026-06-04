@@ -7,7 +7,7 @@ export class HookAgent extends BaseAgent {
         super('HookAgent', requestId);
     }
 
-    async refineHooks(content: string, tone: string): Promise<AgentResponse> {
+    async refineHooks(content: string, tone: string, hookTip = 'Pattern Interrupt'): Promise<AgentResponse> {
         this.log('Refining viral hooks in parallel...');
 
         if (config.drafting.isMockMode) {
@@ -20,7 +20,7 @@ export class HookAgent extends BaseAgent {
                 messages: [
                     {
                         role: 'system',
-                        content: config.prompts.hook(tone, 'Pattern Interrupt', content)
+                        content: config.prompts.hook(tone, hookTip, content)
                     }
                 ],
                 max_tokens: 500,
