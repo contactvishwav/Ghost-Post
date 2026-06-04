@@ -71,13 +71,16 @@ export const generatePipelineTopic = asyncHandler(async (req: Request, res: Resp
 
     const requestId = uuidv4();
     const toneMapping: Record<string, string> = {
-        'professional': 'Professional',
+        'professional':   'Professional',
         'conversational': 'Conversational',
-        'story': 'Storytelling',
-        'provocative': 'Bold/Contrarian'
+        'story':          'Storytelling',
+        'storytelling':   'Storytelling',
+        'bold':           'Bold/Contrarian',
+        'bold/contrarian':'Bold/Contrarian',
+        'provocative':    'Bold/Contrarian',
     };
 
-    const targetTone = toneMapping[topic.tone.toLowerCase()] || 'Professional';
+    const targetTone = toneMapping[topic.tone.toLowerCase()] ?? 'Professional';
 
     const results = await llmService.enhancePost(topic.topic, {
         mode: topic.mode as any,

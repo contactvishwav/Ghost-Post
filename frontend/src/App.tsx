@@ -111,8 +111,14 @@ function AppContent() {
             }));
 
             // Persist the result to Postgres Pipeline for Sessions archive
-            const toneKey = tone.charAt(0).toUpperCase() + tone.slice(1);
-            const content = (response as any)[toneKey] || (response as any)[tone];
+            const TONE_KEY: Record<string, string> = {
+                'professional': 'Professional', 'conversational': 'Conversational',
+                'story': 'Storytelling',        'storytelling': 'Storytelling',
+                'bold': 'Bold/Contrarian',       'bold/contrarian': 'Bold/Contrarian',
+                'provocative': 'Bold/Contrarian',
+            };
+            const toneKey = TONE_KEY[tone.toLowerCase()] ?? tone;
+            const content = (response as any)[toneKey];
             
             if (content) {
                 await axios.post(`${API_BASE}/pipeline`, {

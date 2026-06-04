@@ -142,7 +142,7 @@ const config: Config = {
     drafting: {
         apiKey: draftingApiKey,
         model: MODELS.DRAFTING.DEFAULT,
-        url: process.env.DRAFTING_URL || '',
+        url: process.env.DRAFTING_URL || 'https://api.perplexity.ai/chat/completions',
         isMockMode: !draftingApiKey || draftingApiKey.includes('your_'),
     },
     validation: {
@@ -206,7 +206,7 @@ STYLE GUIDE (INSPIRATIONAL - VISIONARY & UPLIFTING):
 - PHRASING: Use powerful verbs (Imagine, Transform, Ignite) and rhetorical questions about the future.
 - VIBE: Empowering and hopeful. End with a strong "call to greatness".` : ''}
 
-${tone.toLowerCase() === 'provocative' ? `
+${['provocative', 'bold', 'bold/contrarian'].includes(tone.toLowerCase()) ? `
 STYLE GUIDE (PROVOCATIVE - PATTERN INTERRUPT):
 - STYLE: Contrarian and assertive. Challenge the status quo or common industry "best practices".
 - PHRASING: Start with a bold, controversial claim. Use strong, unapologetic language.
@@ -218,7 +218,7 @@ STYLE GUIDE (ACADEMIC - FORMAL & ANALYTICAL):
 - PHRASING: Focus on evidence, methodology, and logical derivation. AVOID CONTRACTIONS.
 - VIBE: High-authority, rigorous, and completely objective.` : ''}
 
-${tone.toLowerCase() === 'story' ? `
+${['story', 'storytelling'].includes(tone.toLowerCase()) ? `
 STYLE GUIDE (STORY - JOURNALISTIC NARRATIVE):
 - STYLE: Narrative-driven. Use a classic "Lead" followed by a character or situation-based arc.
 - PHRASING: "Show, don't tell." Use sensory details (sights, sounds, feelings) and quotes to bring the "story" to life.
@@ -281,7 +281,7 @@ ${tone.toLowerCase() === 'inspirational' ? `
 STYLE GUIDE (INSPIRATIONAL - VISIONARY & UPLIFTING):
 - STYLE: Motivational and high-energy. Focus on "what's possible".` : ''}
 
-${tone.toLowerCase() === 'provocative' ? `
+${['provocative', 'bold', 'bold/contrarian'].includes(tone.toLowerCase()) ? `
 STYLE GUIDE (PROVOCATIVE - PATTERN INTERRUPT):
 - STYLE: Contrarian and assertive. Challenge the status quo.` : ''}
 
@@ -289,7 +289,7 @@ ${tone.toLowerCase() === 'academic' ? `
 STYLE GUIDE (ACADEMIC - FORMAL & ANALYTICAL):
 - STYLE: Objective and formal. Use evidence and logic. AVOID CONTRACTIONS.` : ''}
 
-${tone.toLowerCase() === 'story' ? `
+${['story', 'storytelling'].includes(tone.toLowerCase()) ? `
 STYLE GUIDE (STORY - JOURNALISTIC NARRATIVE):
 - STYLE: Narrative-driven. Use a compelling hook followed by a short arc.` : ''}
 

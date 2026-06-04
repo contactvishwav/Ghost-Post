@@ -4,6 +4,22 @@ import { extractAndParseJson } from '../utils/json.util';
 
 const orchestrator = new AgentOrchestrator();
 
+// Maps any user-supplied tone string to the canonical response key used
+// throughout the system. Keeps frontend input flexible while the API
+// contract stays consistent.
+const TONE_CANONICAL: Record<string, 'Professional' | 'Conversational' | 'Storytelling' | 'Bold/Contrarian'> = {
+    'professional':   'Professional',
+    'conversational': 'Conversational',
+    'story':          'Storytelling',
+    'storytelling':   'Storytelling',
+    'bold':           'Bold/Contrarian',
+    'bold/contrarian':'Bold/Contrarian',
+    'provocative':    'Bold/Contrarian',
+};
+
+const normalizeToCanonical = (tone: string): string =>
+    TONE_CANONICAL[tone.toLowerCase()] ?? tone;
+
 export interface ToneResponse {
     title: string;
     hook: string;
@@ -37,8 +53,8 @@ export const enhancePost = async (text: string, options: EnhanceOptions = {}): P
     logger.info({ textLength: text.length, mode: options.mode, tone: options.tone }, 'Enhancing content via Multi-Agent Orchestrator');
 
     const tones = ['Professional', 'Conversational', 'Storytelling', 'Bold/Contrarian'] as const;
-    const activeTones = options.tone 
-        ? [options.tone as any] 
+    const activeTones = options.tone
+        ? [normalizeToCanonical(options.tone) as any]
         : tones;
 
     try {
