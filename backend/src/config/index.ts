@@ -135,9 +135,10 @@ const config: Config = {
         isMockMode: !securityApiKey || securityApiKey.includes('your_'),
     },
     research: {
-        apiKey: resolveKey(process.env.PERPLEXITY_API_KEY),
-        model: 'sonar',
-        url: 'https://api.perplexity.ai/chat/completions',
+        // Falls back to the drafting key/url so OpenAI works without a separate Perplexity key
+        apiKey: resolveKey(process.env.PERPLEXITY_API_KEY) || draftingApiKey,
+        model: process.env.RESEARCH_MODEL || MODELS.DRAFTING.DEFAULT,
+        url: process.env.RESEARCH_URL || process.env.DRAFTING_URL || 'https://api.openai.com/v1/chat/completions',
     },
     drafting: {
         apiKey: draftingApiKey,

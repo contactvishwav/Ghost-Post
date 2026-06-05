@@ -9,7 +9,7 @@ export const MODELS = {
         GUARD:   process.env.GUARD_MODEL    || 'gpt-4o-mini',
     },
     DRAFTING: {
-        DEFAULT: process.env.DRAFTING_MODEL || 'sonar',
+        DEFAULT: process.env.DRAFTING_MODEL || 'gpt-4o-mini',
     },
     VALIDATION: {
         DEFAULT: process.env.VALIDATION_MODEL || 'gemini-2.5-flash',
