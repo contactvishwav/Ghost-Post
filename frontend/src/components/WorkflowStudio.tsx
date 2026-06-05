@@ -73,8 +73,13 @@ export default function WorkflowStudio({ onComplete }: WorkflowStudioProps) {
                         rawThoughts: state.rawThoughts
                     })
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error);
+                let data: any;
+                try {
+                    data = await res.json();
+                } catch {
+                    throw new Error('Backend is not reachable — make sure the backend server is running on port 5000.');
+                }
+                if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
                 updateState({ hooks: data.hooks, sanitizedInput: data.sanitizedInput });
             } catch (err: any) {
                 alert(`Failed to generate hooks: ${err.message}`);
